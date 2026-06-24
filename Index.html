@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>倒计时</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Microsoft YaHei", system-ui, sans-serif;
+    color: #2b2340;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255, 210, 235, .9), transparent 28%),
+      radial-gradient(circle at 80% 10%, rgba(198, 230, 255, .9), transparent 30%),
+      linear-gradient(135deg, #fff7fb, #f2f7ff 45%, #fffaf0);
+    overflow-x: hidden;
+  }
+
+  .floating {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .petal {
+    position: absolute;
+    top: -60px;
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #ff9ecb, #ffd6e7);
+    border-radius: 70% 20% 70% 20%;
+    opacity: .42;
+    animation: fall linear infinite;
+  }
+
+  @keyframes fall {
+    to {
+      transform: translateY(110vh) rotate(520deg);
+    }
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 34px 18px 60px;
+  }
+
+  .hero {
+    position: relative;
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 16px 56px 16px;
+    border-radius: 28px;
+    background: rgba(255,255,255,.38);
+    border: 1px solid rgba(255,255,255,.72);
+    backdrop-filter: blur(12px);
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 6vw, 62px);
+    margin: 0;
+    letter-spacing: -2px;
+  }
+
+  .hero p {
+    margin: 9px auto 0;
+    font-size: 17px;
+    opacity: .72;
+  }
+
+  .hero-edit-btn {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 800;
+    color: #5b52d6;
+    background: rgba(255,255,255,.75);
+    box-shadow: 0 8px 18px rgba(87, 76, 140, .08);
+  }
+
+  .main-card {
+    backdrop-filter: blur(18px);
+    background: rgba(255,255,255,.62);
+    border: 1px solid rgba(255,255,255,.85);
+    box-shadow: 0 24px 70px rgba(71, 61, 120, .16);
+    border-radius: 34px;
+    padding: 26px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .tab {
+    border: 0;
+    padding: 11px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: rgba(255,255,255,.65);
+    color: #473f64;
+    font-weight: 700;
+    transition: .25s;
+    box-shadow: 0 8px 20px rgba(87, 76, 140, .08);
+  }
+
+  .tab.active {
+    color: white;
+    background: linear-gradient(135deg, #7c6cff, #ff80ba);
+    transform: translateY(-2px);
+  }
+
+  .count-title {
+    text-align: center;
+    margin: 8px 0 20px;
+    font-size: 25px;
+    font-weight: 900;
+  }
+
+  .timer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .unit {
+    background: rgba(255,255,255,.78);
+    border-radius: 24px;
+    padding: 20px 10px;
+    text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 14px 30px rgba(80, 66, 130, .09);
+  }
+
+  .num {
+    font-size: clamp(34px, 7vw, 66px);
+    font-weight: 950;
+    line-height: 1;
+    background: linear-gradient(135deg, #5b52d6, #ff6fae);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .label {
+    margin-top: 8px;
+    font-size: 15px;
+    opacity: .65;
+  }
+
+  .progress-wrap {
+    margin: 12px 0 26px;
+  }
+
+  .progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    opacity: .72;
+    margin-bottom: 8px;
+  }
+#progressText {
+  cursor: pointer;
+  user-select: none;
+}
+  .progress {
+    height: 16px;
+    border-radius: 999px;
+    background: rgba(90, 75, 130, .1);
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7c6cff, #ff80ba, #ffd36e);
+    transition: width .4s ease;
+  }
+
+  .calendar-box {
+    display: grid;
+    grid-template-columns: minmax(520px, 1fr) minmax(520px, 1fr);
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .calendar-panel {
+    background: rgba(255,255,255,.76);
+    border-radius: 30px;
+    padding: 22px;
+    box-shadow: 0 16px 36px rgba(90, 75, 130, .1);
+  }
+
+  .calendar-toolbar {
+    display: grid;
+    grid-template-columns: 50px 1fr 50px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .month-btn {
+    height: 46px;
+    border: 0;
+    border-radius: 16px;
+    background: rgba(255,255,255,.84);
+    box-shadow: 0 8px 20px rgba(87, 76, 140, .08);
+    cursor: pointer;
+    font-size: 25px;
+    font-weight: 900;
+    color: #5b52d6;
+  }
+
+  .month-title {
+    border: 0;
+    height: 46px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(124,108,255,.14), rgba(255,128,186,.16));
+    color: #2b2340;
+    font-size: 20px;
+    font-weight: 950;
+    cursor: pointer;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    text-align: center;
+  }
+
+  .weekday {
+    font-size: 13px;
+    opacity: .5;
+    padding-bottom: 4px;
+    font-weight: 800;
+  }
+
+  .day {
+    min-height: 66px;
+    border-radius: 16px;
+    font-size: 15px;
+    background: rgba(255,255,255,.58);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    position: relative;
+    cursor: pointer;
+    transition: .2s;
+  }
+
+  .day:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(90, 75, 130, .12);
+  }
+
+  .day.empty {
+    cursor: default;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .day.empty:hover {
+    transform: none;
+  }
+
+  .day.today {
+    background: #2b2340;
+    color: white;
+  }
+
+  .day.target {
+    background: linear-gradient(135deg, #7c6cff, #ff80ba);
+    color: white;
+    font-weight: 900;
+    animation: pulse 1.8s infinite;
+  }
+
+  .day.has-event {
+    box-shadow: inset 0 0 0 2px rgba(124,108,255,.28);
+  }
+
+  .day.has-difficulty {
+    color: white;
+    font-weight: 900;
+  }
+
+  .day.holiday:not(.has-difficulty):not(.target):not(.today) {
+    background: linear-gradient(135deg, #dff7ff, #c9eeff);
+    color: #24536b;
+    font-weight: 900;
+  }
+
+  .day.diff-E {
+    background: linear-gradient(135deg, #0f6b3a, #17864a);
+  }
+
+  .day.diff-D {
+    background: linear-gradient(135deg, #20964f, #45b96e);
+  }
+
+  .day.diff-C {
+    background: linear-gradient(135deg, #7bcf72, #b8e986);
+    color: #24331f;
+  }
+
+  .day.diff-B {
+    background: linear-gradient(135deg, #ffd36e, #ffb84d);
+    color: #49350d;
+  }
+
+  .day.diff-A {
+    background: linear-gradient(135deg, #ff9f43, #ff7b38);
+    color: white;
+  }
+
+  .day.diff-S {
+    background: linear-gradient(135deg, #e84a5f, #c7384d);
+    color: white;
+  }
+
+  .day.diff-SPLUS {
+    background: linear-gradient(135deg, #8f1028, #5f0818);
+    color: white;
+  }
+
+  .event-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: .88;
+  }
+
+  .event-label {
+    font-size: 11px;
+    line-height: 1.1;
+    max-width: 100%;
+    opacity: .92;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .difficulty-mark {
+    position: absolute;
+    right: 6px;
+    top: 5px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.25);
+    backdrop-filter: blur(5px);
+  }
+
+  .holiday-mark {
+    position: absolute;
+    left: 6px;
+    top: 5px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.35);
+    backdrop-filter: blur(5px);
+    font-weight: 950;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+  }
+
+  .side-panel {
+    background: rgba(255,255,255,.6);
+    border-radius: 30px;
+    padding: 22px;
+    box-shadow: 0 16px 36px rgba(90, 75, 130, .08);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .side-title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 950;
+  }
+
+  .milestone-list {
+    flex: 1;
+    max-height: 530px;
+    overflow: auto;
+    padding-right: 4px;
+  }
+
+  .milestone {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(80,70,120,.1);
+    cursor: pointer;
+  }
+
+  .milestone:last-child {
+    border-bottom: 0;
+  }
+
+  .milestone strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 16px;
+  }
+
+  .mini-time {
+    opacity: .68;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .status-pill {
+    align-self: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(124,108,255,.12);
+    color: #5b52d6;
+    font-weight: 800;
+    white-space: nowrap;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .small-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 7px 11px;
+    cursor: pointer;
+    font-weight: 800;
+    background: rgba(255,255,255,.8);
+    color: #5b52d6;
+  }
+
+  .small-btn.delete {
+    color: #d64571;
+  }
+
+  .custom {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 10px;
+  }
+
+  input, button, select {
+    font-family: inherit;
+  }
+
+  input, select {
+    border: 0;
+    outline: 0;
+    padding: 13px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.82);
+    box-shadow: inset 0 0 0 1px rgba(80,70,120,.12);
+  }
+
+  .add-btn {
+    border: 0;
+    border-radius: 16px;
+    padding: 0 18px;
+    cursor: pointer;
+    color: white;
+    font-weight: 900;
+    background: linear-gradient(135deg, #7c6cff, #ff80ba);
+  }
+
+  .quote {
+    text-align: center;
+    margin-top: 24px;
+    font-weight: 800;
+    opacity: .68;
+  }
+
+  .modal-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(43, 35, 64, .28);
+    backdrop-filter: blur(8px);
+    padding: 18px;
+  }
+
+  .modal-mask.show {
+    display: flex;
+  }
+
+  .modal {
+    width: min(520px, 100%);
+    background: rgba(255,255,255,.92);
+    border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 24px 70px rgba(43,35,64,.24);
+    border-radius: 28px;
+    padding: 24px;
+  }
+
+  .small-modal {
+    width: min(460px, 100%);
+  }
+
+  .modal h2 {
+    margin: 0 0 18px;
+    font-size: 24px;
+  }
+
+  .form-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .form-grid label {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 800;
+    opacity: .8;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+
+  .ghost-btn {
+    border: 0;
+    border-radius: 16px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 900;
+    background: rgba(90,75,130,.1);
+    color: #473f64;
+  }
+
+  .primary-btn {
+    border: 0;
+    border-radius: 16px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 900;
+    color: white;
+    background: linear-gradient(135deg, #7c6cff, #ff80ba);
+  }
+
+  .danger-btn {
+    border: 0;
+    border-radius: 16px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 900;
+    color: white;
+    background: linear-gradient(135deg, #e84a5f, #8f1028);
+  }
+
+  .holiday-btn {
+    border: 0;
+    border-radius: 16px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 900;
+    color: #24536b;
+    background: linear-gradient(135deg, #dff7ff, #bdeaff);
+  }
+
+  .difficulty-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .diff-choice {
+    min-height: 48px;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 950;
+    color: white;
+    transition: .18s;
+    box-shadow: 0 10px 20px rgba(43, 35, 64, .1);
+  }
+
+  .diff-choice:hover {
+    transform: translateY(-2px) scale(1.03);
+  }
+
+  .diff-choice.selected {
+    outline: 4px solid rgba(43, 35, 64, .22);
+    transform: translateY(-2px) scale(1.04);
+  }
+
+  .diff-choice.E {
+    background: linear-gradient(135deg, #0f6b3a, #17864a);
+  }
+
+  .diff-choice.D {
+    background: linear-gradient(135deg, #20964f, #45b96e);
+  }
+
+  .diff-choice.C {
+    background: linear-gradient(135deg, #7bcf72, #b8e986);
+    color: #24331f;
+  }
+
+  .diff-choice.B {
+    background: linear-gradient(135deg, #ffd36e, #ffb84d);
+    color: #49350d;
+  }
+
+  .diff-choice.A {
+    background: linear-gradient(135deg, #ff9f43, #ff7b38);
+  }
+
+  .diff-choice.S {
+    background: linear-gradient(135deg, #e84a5f, #c7384d);
+  }
+
+  .diff-choice.SPLUS {
+    background: linear-gradient(135deg, #8f1028, #5f0818);
+  }
+
+  @media (max-width: 1150px) {
+    .calendar-box {
+      grid-template-columns: 1fr;
+    }
+
+    .milestone-list {
+      max-height: none;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .wrap {
+      padding-top: 26px;
+    }
+
+    .hero {
+      padding: 18px 16px 58px;
+    }
+
+    .timer {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .calendar-panel,
+    .side-panel {
+      padding: 16px;
+      border-radius: 26px;
+    }
+
+    .day {
+      min-height: 48px;
+      border-radius: 13px;
+      font-size: 13px;
+    }
+
+    .event-label {
+      font-size: 9px;
+    }
+
+    .difficulty-mark,
+    .holiday-mark {
+      font-size: 8px;
+      padding: 1px 4px;
+    }
+
+    .custom {
+      grid-template-columns: 1fr;
+    }
+
+    .add-btn {
+      padding: 14px;
+    }
+
+    .milestone {
+      grid-template-columns: 1fr;
+    }
+
+    .action-row {
+      justify-content: flex-start;
+    }
+
+    .difficulty-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>
+</head>
+
+<body>
+  <div class="floating" id="floating"></div>
+
+  <div class="wrap">
+    <div class="hero">
+      <h1 id="heroTitle">熬一天，少一天</h1>
+      <p id="heroSubtitle">现在开始，每一秒都在靠近结束。</p>
+      <button class="hero-edit-btn" id="editHeroBtn">✎ 编辑</button>
+    </div>
+
+    <div class="main-card">
+      <div class="tabs" id="tabs"></div>
+
+      <div class="count-title" id="countTitle"></div>
+
+      <div class="timer">
+        <div class="unit">
+          <div class="num" id="days">0</div>
+          <div class="label">天</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="hours">0</div>
+          <div class="label">小时</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="minutes">0</div>
+          <div class="label">分钟</div>
+        </div>
+        <div class="unit">
+          <div class="num" id="seconds">0</div>
+          <div class="label">秒</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-text">
+          <span>进度条</span>
+          <span id="progressText">0%</span>
+        </div>
+
+        <div class="progress">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+
+      <div class="calendar-box">
+        <div class="calendar-panel">
+          <div class="calendar-toolbar">
+            <button class="month-btn" id="prevMonthBtn">‹</button>
+            <button class="month-title" id="monthTitle">2026年5月</button>
+            <button class="month-btn" id="nextMonthBtn">›</button>
+          </div>
+
+          <div class="cal-grid" id="calendarGrid"></div>
+        </div>
+
+        <div class="side-panel">
+          <h3 class="side-title">日期项目</h3>
+          <div class="milestone-list" id="milestones"></div>
+
+          <div class="custom">
+            <input id="customName" placeholder="自定义名字" />
+            <input id="customDate" type="datetime-local" />
+            <button class="add-btn" id="addBtn">添加</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote" id="quote"></div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="heroModal">
+    <div class="modal">
+      <h2>编辑顶部文字</h2>
+
+      <div class="form-grid">
+        <label>
+          标题
+          <input id="editHeroTitle" type="text" />
+        </label>
+
+        <label>
+          副标题
+          <input id="editHeroSubtitle" type="text" />
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ghost-btn" id="cancelHeroEditBtn">取消</button>
+        <button class="primary-btn" id="saveHeroEditBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="editModal">
+    <div class="modal">
+      <h2>修改倒计时项目</h2>
+
+      <div class="form-grid">
+        <label>
+          名字
+          <input id="editName" type="text" />
+        </label>
+
+        <label>
+          目标日期时间
+          <input id="editDate" type="datetime-local" />
+        </label>
+
+        <label>
+          开始日期
+          <input id="editStart" type="datetime-local" />
+        </label>
+
+        <label>
+          鼓励文字
+          <input id="editQuote" type="text" />
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ghost-btn" id="cancelEditBtn">取消</button>
+        <button class="primary-btn" id="saveEditBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="monthModal">
+    <div class="modal">
+      <h2>跳转日历</h2>
+
+      <div class="form-grid">
+        <label>
+          年份
+          <input id="pickYear" type="number" min="1900" max="2100" />
+        </label>
+
+        <label>
+          月份
+          <select id="pickMonth">
+            <option value="0">1月</option>
+            <option value="1">2月</option>
+            <option value="2">3月</option>
+            <option value="3">4月</option>
+            <option value="4">5月</option>
+            <option value="5">6月</option>
+            <option value="6">7月</option>
+            <option value="7">8月</option>
+            <option value="8">9月</option>
+            <option value="9">10月</option>
+            <option value="10">11月</option>
+            <option value="11">12月</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ghost-btn" id="cancelMonthBtn">取消</button>
+        <button class="primary-btn" id="jumpMonthBtn">跳转</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="difficultyModal">
+    <div class="modal small-modal">
+      <h2 id="difficultyTitle">评价难度</h2>
+
+      <div class="difficulty-grid" id="difficultyGrid"></div>
+
+      <div class="modal-actions">
+        <button class="holiday-btn" id="toggleHolidayBtn">标记放假</button>
+        <button class="danger-btn" id="clearDifficultyBtn">清除难度</button>
+        <button class="ghost-btn" id="closeDifficultyBtn">关闭</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const defaultYear = new Date().getFullYear();
+
+  const defaultTargets = [
+    {
+      name: "5月12日 10:15",
+      date: new Date(defaultYear, 4, 12, 10, 15, 0),
+      start: new Date(defaultYear, 4, 4, 0, 0, 0),
+      quote: "第一个节点正在靠近。"
+    },
+    {
+      name: "5月26日 早上8点",
+      date: new Date(defaultYear, 4, 26, 8, 0, 0),
+      start: new Date(defaultYear, 4, 4, 0, 0, 0),
+      quote: "再坚持一下，就快看到出口了。"
+    },
+    {
+      name: "5月29日 下午2点到头",
+      date: new Date(defaultYear, 4, 29, 14, 0, 0),
+      start: new Date(defaultYear, 4, 4, 0, 0, 0),
+      quote: "熬到头，就是胜利。"
+    },
+    {
+      name: "6月26日 下午2点整",
+      date: new Date(defaultYear, 5, 26, 14, 0, 0),
+      start: new Date(defaultYear, 4, 4, 0, 0, 0),
+      quote: "更远的目标，也是一秒一秒走过去的。"
+    }
+  ];
+
+  const difficultyLevels = [
+    { key: "E", label: "E" },
+    { key: "D", label: "D" },
+    { key: "C", label: "C" },
+    { key: "B", label: "B" },
+    { key: "A", label: "A" },
+    { key: "S", label: "S" },
+    { key: "SPLUS", label: "S+" }
+  ];
+
+  let targets = loadTargets();
+  let difficulties = loadDifficulties();
+  let manualHolidays = loadManualHolidays();
+
+  let activeIndex = 0;
+  let editingIndex = null;
+  let selectedDifficultyDateKey = null;
+  let selectedDifficultyDateInfo = null;
+let progressDecimalPlaces = 2;
+  const todayForCalendar = new Date();
+  let visibleYear = todayForCalendar.getFullYear();
+  let visibleMonth = todayForCalendar.getMonth();
+
+  const heroTitle = document.getElementById("heroTitle");
+  const heroSubtitle = document.getElementById("heroSubtitle");
+
+  const daysEl = document.getElementById("days");
+  const hoursEl = document.getElementById("hours");
+  const minutesEl = document.getElementById("minutes");
+  const secondsEl = document.getElementById("seconds");
+  const countTitle = document.getElementById("countTitle");
+  const tabs = document.getElementById("tabs");
+  const milestones = document.getElementById("milestones");
+  const progressBar = document.getElementById("progressBar");
+  const progressText = document.getElementById("progressText");
+  const quote = document.getElementById("quote");
+  const calendarGrid = document.getElementById("calendarGrid");
+  const monthTitle = document.getElementById("monthTitle");
+
+  function saveHeroText() {
+    localStorage.setItem("countdown_hero_v1", JSON.stringify({
+      title: heroTitle.textContent,
+      subtitle: heroSubtitle.textContent
+    }));
+  }
+
+  function loadHeroText() {
+    const saved = localStorage.getItem("countdown_hero_v1");
+
+    if (!saved) return;
+
+    try {
+      const data = JSON.parse(saved);
+
+      if (data.title) {
+        heroTitle.textContent = data.title;
+      }
+
+      if (data.subtitle) {
+        heroSubtitle.textContent = data.subtitle;
+      }
+    } catch (e) {}
+  }
+
+  function saveTargets() {
+    const data = targets.map(item => ({
+      name: item.name,
+      date: item.date.toISOString(),
+      start: item.start.toISOString(),
+      quote: item.quote
+    }));
+
+    localStorage.setItem("countdown_targets_v2", JSON.stringify(data));
+  }
+
+  function loadTargets() {
+    const saved = localStorage.getItem("countdown_targets_v2");
+
+    if (!saved) {
+      return defaultTargets;
+    }
+
+    try {
+      const parsed = JSON.parse(saved);
+
+      if (!Array.isArray(parsed)) {
+        return defaultTargets;
+      }
+
+      return parsed.map(item => ({
+        name: item.name,
+        date: new Date(item.date),
+        start: new Date(item.start),
+        quote: item.quote || "继续坚持。"
+      }));
+    } catch (e) {
+      return defaultTargets;
+    }
+  }
+
+  function saveDifficulties() {
+    localStorage.setItem("countdown_difficulties_v1", JSON.stringify(difficulties));
+  }
+
+  function loadDifficulties() {
+    const saved = localStorage.getItem("countdown_difficulties_v1");
+
+    if (!saved) return {};
+
+    try {
+      const parsed = JSON.parse(saved);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveManualHolidays() {
+    localStorage.setItem("countdown_manual_holidays_v1", JSON.stringify(manualHolidays));
+  }
+
+  function loadManualHolidays() {
+    const saved = localStorage.getItem("countdown_manual_holidays_v1");
+
+    if (!saved) return {};
+
+    try {
+      const parsed = JSON.parse(saved);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function pad(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function dateKey(year, month, day) {
+    return `${year}-${pad(month + 1)}-${pad(day)}`;
+  }
+
+  function dateKeyFromDate(date) {
+    return dateKey(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function toDateTimeLocalValue(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = pad(d.getMonth() + 1);
+    const day = pad(d.getDate());
+    const hour = pad(d.getHours());
+    const minute = pad(d.getMinutes());
+
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+  }
+
+  function formatDate(d) {
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+function formatProgressPercent(percent) {
+  return percent.toFixed(progressDecimalPlaces) + "%";
+}
+  function isWeekend(year, month, day) {
+    const weekDay = new Date(year, month, day).getDay();
+    return weekDay === 0 || weekDay === 6;
+  }
+
+  function isSummerHoliday(year, month, day) {
+    const current = new Date(year, month, day);
+    const start = new Date(year, 6, 1);
+    const end = new Date(year, 8, 1);
+
+    return current >= start && current <= end;
+  }
+
+  function getAutoHolidayReason(year, month, day) {
+    if (isSummerHoliday(year, month, day)) {
+      return "暑假";
+    }
+
+    if (isWeekend(year, month, day)) {
+      return "周末";
+    }
+
+    return "";
+  }
+
+  function isAutoHoliday(year, month, day) {
+    return getAutoHolidayReason(year, month, day) !== "";
+  }
+
+  function isHoliday(year, month, day) {
+    const key = dateKey(year, month, day);
+
+    // false 表示：哪怕它本来是周末/暑假，也被你手动取消放假
+    if (manualHolidays[key] === false) {
+      return false;
+    }
+
+    // true 表示：手动标记放假
+    if (manualHolidays[key] === true) {
+      return true;
+    }
+
+    // 没有手动设置时，才按自动规则判断
+    return isAutoHoliday(year, month, day);
+  }
+
+  function diffParts(targetDate) {
+    const now = new Date();
+    let diff = targetDate - now;
+
+    if (diff <= 0) {
+      return { over: true, days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    diff %= 1000 * 60 * 60 * 24;
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    diff %= 1000 * 60 * 60;
+
+    const minutes = Math.floor(diff / (1000 * 60));
+    diff %= 1000 * 60;
+
+    const seconds = Math.floor(diff / 1000);
+
+    return { over: false, days, hours, minutes, seconds };
+  }
+
+  function renderTabs() {
+    tabs.innerHTML = "";
+
+    targets.forEach((item, index) => {
+      const btn = document.createElement("button");
+      btn.className = "tab" + (index === activeIndex ? " active" : "");
+      btn.textContent = item.name;
+
+      btn.addEventListener("click", () => {
+        activeIndex = index;
+        visibleYear = item.date.getFullYear();
+        visibleMonth = item.date.getMonth();
+        renderAll();
+      });
+
+      tabs.appendChild(btn);
+    });
+  }
+
+  function update() {
+    if (targets.length === 0) {
+      countTitle.textContent = "还没有倒计时项目";
+      daysEl.textContent = "0";
+      hoursEl.textContent = "0";
+      minutesEl.textContent = "0";
+      secondsEl.textContent = "0";
+      progressBar.style.width = "0%";
+      progressText.textContent = "0%";
+      quote.textContent = "";
+      milestones.innerHTML = "";
+      tabs.innerHTML = "";
+      renderCalendar();
+      return;
+    }
+
+    if (activeIndex < 0 || activeIndex >= targets.length) {
+      activeIndex = 0;
+    }
+
+    const target = targets[activeIndex];
+    const left = diffParts(target.date);
+
+    countTitle.textContent = left.over ? "已经到点了！" : `距离「${target.name}」还有`;
+
+    daysEl.textContent = left.days;
+    hoursEl.textContent = left.hours;
+    minutesEl.textContent = left.minutes;
+    secondsEl.textContent = left.seconds;
+
+    quote.textContent = target.quote;
+
+    const now = new Date();
+    const total = target.date - target.start;
+    const passed = now - target.start;
+
+    let percent;
+
+    if (total <= 0) {
+      percent = 100;
+    } else {
+      percent = Math.min(100, Math.max(0, passed / total * 100));
+    }
+
+progressBar.style.width = percent.toFixed(2) + "%";
+progressText.textContent = formatProgressPercent(percent);
+    renderMilestones();
+  }
+
+  function renderMilestones() {
+    milestones.innerHTML = "";
+
+    targets.forEach((item, index) => {
+      const left = diffParts(item.date);
+
+      const row = document.createElement("div");
+      row.className = "milestone";
+
+      const info = document.createElement("div");
+
+      const title = document.createElement("strong");
+      title.textContent = item.name;
+
+      const targetLine = document.createElement("div");
+      targetLine.className = "mini-time";
+      targetLine.textContent = `目标：${formatDate(item.date)}`;
+
+      const startLine = document.createElement("div");
+      startLine.className = "mini-time";
+      startLine.textContent = `开始日期：${formatDate(item.start)}`;
+
+      const key = dateKeyFromDate(item.date);
+
+      const diffLine = document.createElement("div");
+      diffLine.className = "mini-time";
+      diffLine.textContent = difficulties[key]
+        ? `难度：${difficulties[key].replace("SPLUS", "S+")}`
+        : "难度：未评价";
+
+      const holidayLine = document.createElement("div");
+      holidayLine.className = "mini-time";
+
+      const targetYear = item.date.getFullYear();
+      const targetMonth = item.date.getMonth();
+      const targetDay = item.date.getDate();
+
+      if (isHoliday(targetYear, targetMonth, targetDay)) {
+        const reason = getAutoHolidayReason(targetYear, targetMonth, targetDay);
+        holidayLine.textContent = reason ? `放假：是（${reason}）` : "放假：是";
+      } else {
+        holidayLine.textContent = "放假：否";
+      }
+
+      info.appendChild(title);
+      info.appendChild(targetLine);
+      info.appendChild(startLine);
+      info.appendChild(diffLine);
+      info.appendChild(holidayLine);
+
+      const right = document.createElement("div");
+
+      const status = document.createElement("div");
+      status.className = "status-pill";
+      status.textContent = left.over
+        ? "已结束"
+        : `${left.days}天 ${left.hours}小时 ${left.minutes}分 ${left.seconds}秒`;
+
+      const actionRow = document.createElement("div");
+      actionRow.className = "action-row";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "small-btn";
+      editBtn.textContent = "修改";
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openEditModal(index);
+      });
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "small-btn delete";
+      deleteBtn.textContent = "删除";
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteTarget(index);
+      });
+
+      actionRow.appendChild(editBtn);
+      actionRow.appendChild(deleteBtn);
+
+      right.appendChild(status);
+      right.appendChild(actionRow);
+
+      row.appendChild(info);
+      row.appendChild(right);
+
+      row.addEventListener("click", () => {
+        activeIndex = index;
+        visibleYear = item.date.getFullYear();
+        visibleMonth = item.date.getMonth();
+        renderAll();
+      });
+
+      milestones.appendChild(row);
+    });
+  }
+
+  function renderCalendar() {
+    monthTitle.textContent = `${visibleYear}年${visibleMonth + 1}月`;
+
+    calendarGrid.innerHTML = "";
+
+    const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+
+    weekdays.forEach(w => {
+      const el = document.createElement("div");
+      el.className = "weekday";
+      el.textContent = w;
+      calendarGrid.appendChild(el);
+    });
+
+    const firstDay = new Date(visibleYear, visibleMonth, 1).getDay();
+    const daysInMonth = new Date(visibleYear, visibleMonth + 1, 0).getDate();
+    const today = new Date();
+
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement("div");
+      empty.className = "day empty";
+      calendarGrid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement("div");
+      el.className = "day";
+
+      const key = dateKey(visibleYear, visibleMonth, d);
+      const difficulty = difficulties[key];
+      const holiday = isHoliday(visibleYear, visibleMonth, d);
+
+      if (difficulty) {
+        el.classList.add("has-difficulty");
+        el.classList.add(`diff-${difficulty}`);
+      }
+
+      if (holiday) {
+        el.classList.add("holiday");
+      }
+
+      const dayNumber = document.createElement("div");
+      dayNumber.textContent = d;
+      el.appendChild(dayNumber);
+
+      if (holiday) {
+        const holidayMark = document.createElement("div");
+        holidayMark.className = "holiday-mark";
+        holidayMark.textContent = "假";
+        el.appendChild(holidayMark);
+      }
+
+      if (difficulty) {
+        const mark = document.createElement("div");
+        mark.className = "difficulty-mark";
+        mark.textContent = difficulty.replace("SPLUS", "S+");
+        el.appendChild(mark);
+      }
+
+      const isToday =
+        today.getFullYear() === visibleYear &&
+        today.getMonth() === visibleMonth &&
+        today.getDate() === d;
+
+      if (isToday && !difficulty && !holiday) {
+        el.classList.add("today");
+      }
+
+      const eventsOnThisDay = targets.filter(item =>
+        item.date.getFullYear() === visibleYear &&
+        item.date.getMonth() === visibleMonth &&
+        item.date.getDate() === d
+      );
+
+      if (eventsOnThisDay.length > 0) {
+        el.classList.add("has-event");
+
+        eventsOnThisDay.forEach(eventItem => {
+          const dot = document.createElement("div");
+          dot.className = "event-dot";
+          el.appendChild(dot);
+
+          const label = document.createElement("div");
+          label.className = "event-label";
+          label.textContent = `${pad(eventItem.date.getHours())}:${pad(eventItem.date.getMinutes())}`;
+          el.appendChild(label);
+        });
+      }
+
+      const activeTarget = targets[activeIndex];
+
+      if (
+        activeTarget &&
+        activeTarget.date.getFullYear() === visibleYear &&
+        activeTarget.date.getMonth() === visibleMonth &&
+        activeTarget.date.getDate() === d
+      ) {
+        el.classList.add("target");
+      }
+
+      el.addEventListener("click", () => {
+        if (eventsOnThisDay.length > 0) {
+          const firstEvent = eventsOnThisDay[0];
+          activeIndex = targets.indexOf(firstEvent);
+        }
+
+        openDifficultyModal(visibleYear, visibleMonth, d);
+        renderAll();
+      });
+
+      calendarGrid.appendChild(el);
+    }
+  }
+
+  function changeMonth(step) {
+    visibleMonth += step;
+
+    if (visibleMonth < 0) {
+      visibleMonth = 11;
+      visibleYear--;
+    }
+
+    if (visibleMonth > 11) {
+      visibleMonth = 0;
+      visibleYear++;
+    }
+
+    renderCalendar();
+  }
+
+  function openMonthPicker() {
+    document.getElementById("pickYear").value = visibleYear;
+    document.getElementById("pickMonth").value = visibleMonth;
+    document.getElementById("monthModal").classList.add("show");
+  }
+
+  function closeMonthPicker() {
+    document.getElementById("monthModal").classList.remove("show");
+  }
+
+  function jumpToMonth() {
+    const year = Number(document.getElementById("pickYear").value);
+    const month = Number(document.getElementById("pickMonth").value);
+
+    if (!year || month < 0 || month > 11) {
+      alert("年份或月份不正确。");
+      return;
+    }
+
+    visibleYear = year;
+    visibleMonth = month;
+
+    closeMonthPicker();
+    renderCalendar();
+  }
+
+  function addCustom() {
+    const name = document.getElementById("customName").value.trim();
+    const dateValue = document.getElementById("customDate").value;
+
+    if (!name || !dateValue) {
+      alert("先填名字和时间！");
+      return;
+    }
+
+    const targetDate = new Date(dateValue);
+    const startDate = new Date();
+
+    targets.push({
+      name,
+      date: targetDate,
+      start: startDate,
+      quote: "这是你自己加的新目标。"
+    });
+
+    activeIndex = targets.length - 1;
+    visibleYear = targetDate.getFullYear();
+    visibleMonth = targetDate.getMonth();
+
+    document.getElementById("customName").value = "";
+    document.getElementById("customDate").value = "";
+
+    saveTargets();
+    renderAll();
+  }
+
+  function openEditModal(index) {
+    editingIndex = index;
+    const item = targets[index];
+
+    document.getElementById("editName").value = item.name;
+    document.getElementById("editDate").value = toDateTimeLocalValue(item.date);
+    document.getElementById("editStart").value = toDateTimeLocalValue(item.start);
+    document.getElementById("editQuote").value = item.quote;
+
+    document.getElementById("editModal").classList.add("show");
+  }
+
+  function closeEditModal() {
+    editingIndex = null;
+    document.getElementById("editModal").classList.remove("show");
+  }
+
+  function saveEdit() {
+    if (editingIndex === null) return;
+
+    const name = document.getElementById("editName").value.trim();
+    const dateValue = document.getElementById("editDate").value;
+    const startValue = document.getElementById("editStart").value;
+    const quoteValue = document.getElementById("editQuote").value.trim();
+
+    if (!name || !dateValue || !startValue) {
+      alert("名字、目标日期、开始日期都要填。");
+      return;
+    }
+
+    targets[editingIndex] = {
+      name,
+      date: new Date(dateValue),
+      start: new Date(startValue),
+      quote: quoteValue || "继续坚持。"
+    };
+
+    activeIndex = editingIndex;
+    visibleYear = targets[activeIndex].date.getFullYear();
+    visibleMonth = targets[activeIndex].date.getMonth();
+
+    saveTargets();
+    closeEditModal();
+    renderAll();
+  }
+
+  function deleteTarget(index) {
+    if (index < 0 || index >= targets.length) return;
+
+    const item = targets[index];
+
+    const ok = confirm(`确定删除「${item.name}」吗？`);
+
+    if (!ok) return;
+
+    targets.splice(index, 1);
+
+    if (targets.length === 0) {
+      activeIndex = 0;
+    } else if (index === activeIndex) {
+      activeIndex = Math.min(index, targets.length - 1);
+    } else if (index < activeIndex) {
+      activeIndex--;
+    }
+
+    saveTargets();
+    renderAll();
+  }
+
+  function openHeroModal() {
+    document.getElementById("editHeroTitle").value = heroTitle.textContent;
+    document.getElementById("editHeroSubtitle").value = heroSubtitle.textContent;
+    document.getElementById("heroModal").classList.add("show");
+  }
+
+  function closeHeroModal() {
+    document.getElementById("heroModal").classList.remove("show");
+  }
+
+  function saveHeroEdit() {
+    const title = document.getElementById("editHeroTitle").value.trim();
+    const subtitle = document.getElementById("editHeroSubtitle").value.trim();
+
+    heroTitle.textContent = title || "倒计时";
+    heroSubtitle.textContent = subtitle || "每一秒都在靠近目标。";
+
+    saveHeroText();
+    closeHeroModal();
+  }
+
+  function openDifficultyModal(year, month, day) {
+    selectedDifficultyDateKey = dateKey(year, month, day);
+    selectedDifficultyDateInfo = { year, month, day };
+
+    document.getElementById("difficultyTitle").textContent =
+      `${year}年${month + 1}月${day}日 · 评价难度`;
+
+    renderDifficultyChoices();
+    updateHolidayButton();
+
+    document.getElementById("difficultyModal").classList.add("show");
+  }
+
+  function closeDifficultyModal() {
+    selectedDifficultyDateKey = null;
+    selectedDifficultyDateInfo = null;
+    document.getElementById("difficultyModal").classList.remove("show");
+  }
+
+  function renderDifficultyChoices() {
+    const grid = document.getElementById("difficultyGrid");
+    grid.innerHTML = "";
+
+    const current = selectedDifficultyDateKey
+      ? difficulties[selectedDifficultyDateKey]
+      : null;
+
+    difficultyLevels.forEach(level => {
+      const btn = document.createElement("button");
+      btn.className = `diff-choice ${level.key}`;
+
+      if (current === level.key) {
+        btn.classList.add("selected");
+      }
+
+      btn.textContent = level.label;
+
+      btn.addEventListener("click", () => {
+        if (!selectedDifficultyDateKey) return;
+
+        difficulties[selectedDifficultyDateKey] = level.key;
+        saveDifficulties();
+        closeDifficultyModal();
+        renderAll();
+      });
+
+      grid.appendChild(btn);
+    });
+  }
+
+  function updateHolidayButton() {
+    const btn = document.getElementById("toggleHolidayBtn");
+
+    if (!selectedDifficultyDateInfo || !selectedDifficultyDateKey) {
+      btn.textContent = "标记放假";
+      return;
+    }
+
+    const { year, month, day } = selectedDifficultyDateInfo;
+
+    if (isHoliday(year, month, day)) {
+      btn.textContent = "取消放假";
+    } else {
+      btn.textContent = "标记放假";
+    }
+
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  }
+
+  function toggleHoliday() {
+  if (!selectedDifficultyDateKey || !selectedDifficultyDateInfo) return;
+
+  const { year, month, day } = selectedDifficultyDateInfo;
+  const currentlyHoliday = isHoliday(year, month, day);
+
+  if (currentlyHoliday) {
+    manualHolidays[selectedDifficultyDateKey] = false;
+  } else {
+    manualHolidays[selectedDifficultyDateKey] = true;
+  }
+
+  saveManualHolidays();
+
+  document.getElementById("difficultyModal").classList.remove("show");
+
+  selectedDifficultyDateKey = null;
+  selectedDifficultyDateInfo = null;
+
+  renderAll();
+}
+
+  function clearDifficulty() {
+    if (!selectedDifficultyDateKey) return;
+
+    delete difficulties[selectedDifficultyDateKey];
+    saveDifficulties();
+    closeDifficultyModal();
+    renderAll();
+  }
+
+  function createPetals() {
+    const box = document.getElementById("floating");
+
+    for (let i = 0; i < 22; i++) {
+      const p = document.createElement("div");
+      p.className = "petal";
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.animationDuration = 8 + Math.random() * 10 + "s";
+      p.style.animationDelay = Math.random() * 8 + "s";
+      p.style.transform = `scale(${0.6 + Math.random() * 1.1})`;
+      box.appendChild(p);
+    }
+  }
+
+  function renderAll() {
+    renderTabs();
+    renderCalendar();
+    update();
+  }
+
+  document.getElementById("editHeroBtn").addEventListener("click", openHeroModal);
+  document.getElementById("cancelHeroEditBtn").addEventListener("click", closeHeroModal);
+  document.getElementById("saveHeroEditBtn").addEventListener("click", saveHeroEdit);
+
+  document.getElementById("prevMonthBtn").addEventListener("click", () => changeMonth(-1));
+  document.getElementById("nextMonthBtn").addEventListener("click", () => changeMonth(1));
+  document.getElementById("monthTitle").addEventListener("click", openMonthPicker);
+
+  document.getElementById("cancelMonthBtn").addEventListener("click", closeMonthPicker);
+  document.getElementById("jumpMonthBtn").addEventListener("click", jumpToMonth);
+
+  document.getElementById("addBtn").addEventListener("click", addCustom);
+  document.getElementById("cancelEditBtn").addEventListener("click", closeEditModal);
+  document.getElementById("saveEditBtn").addEventListener("click", saveEdit);
+
+  document.getElementById("closeDifficultyBtn").addEventListener("click", closeDifficultyModal);
+  document.getElementById("clearDifficultyBtn").addEventListener("click", clearDifficulty);
+  document.getElementById("toggleHolidayBtn").addEventListener("click", toggleHoliday);
+progressText.addEventListener("click", () => {
+  progressDecimalPlaces = progressDecimalPlaces === 2 ? 4 : 2;
+  update();
+});
+  loadHeroText();
+  createPetals();
+  renderAll();
+
+  setInterval(update, 1000);
+</script>
+</body>
+</html>
