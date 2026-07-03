@@ -21,7 +21,10 @@
       linear-gradient(135deg, #fff7fb, #f2f7ff 45%, #fffaf0);
     overflow-x: hidden;
   }
-
+body.booting .wrap,
+body.booting .floating {
+  visibility: hidden;
+}
   .floating {
     position: fixed;
     inset: 0;
@@ -726,13 +729,13 @@
 </style>
 </head>
 
-<body>
+<body class="booting">
   <div class="floating" id="floating"></div>
 
   <div class="wrap">
     <div class="hero">
       <h1 id="heroTitle">熬一天，少一天</h1>
-      <p id="heroSubtitle">现在开始，每一秒都在靠近结束。</p>
+      <p id="heroSubtitle">快熬一熬</p>
       <button class="hero-edit-btn" id="editHeroBtn">✎ 编辑</button>
     </div>
 
@@ -908,31 +911,19 @@
   const defaultYear = new Date().getFullYear();
 
   const defaultTargets = [
-    {
-      name: "5月12日 10:15",
-      date: new Date(defaultYear, 4, 12, 10, 15, 0),
-      start: new Date(defaultYear, 4, 4, 0, 0, 0),
-      quote: "第一个节点正在靠近。"
-    },
-    {
-      name: "5月26日 早上8点",
-      date: new Date(defaultYear, 4, 26, 8, 0, 0),
-      start: new Date(defaultYear, 4, 4, 0, 0, 0),
-      quote: "再坚持一下，就快看到出口了。"
-    },
-    {
-      name: "5月29日 下午2点到头",
-      date: new Date(defaultYear, 4, 29, 14, 0, 0),
-      start: new Date(defaultYear, 4, 4, 0, 0, 0),
-      quote: "熬到头，就是胜利。"
-    },
-    {
-      name: "6月26日 下午2点整",
-      date: new Date(defaultYear, 5, 26, 14, 0, 0),
-      start: new Date(defaultYear, 4, 4, 0, 0, 0),
-      quote: "更远的目标，也是一秒一秒走过去的。"
-    }
-  ];
+  {
+    name: "多伦多",
+    date: new Date("2026-07-18T11:30:00.000Z"),
+    start: new Date("2026-06-27T22:48:18.975Z"),
+    quote: "这是你自己加的新目标。"
+  },
+  {
+    name: "回国",
+    date: new Date("2026-12-04T15:00:00.000Z"),
+    start: new Date("2026-07-01T19:29:48.851Z"),
+    quote: "这是你自己加的新目标。"
+  }
+];
 const onlineDataVersion = "2026-07-03-v1";
 
 const initialOnlineData = {
@@ -1978,13 +1969,13 @@ progressText.addEventListener("click", () => {
   progressDecimalPlaces = progressDecimalPlaces === 2 ? 4 : 2;
   update();
 });
+
 createPetals();
-renderAll();
-loadOnlineData();
+loadOnlineData().finally(() => {
+  document.body.classList.remove("booting");
+});
 
 setInterval(update, 1000);
-
-  setInterval(update, 1000);
 </script>
 </body>
 </html>
