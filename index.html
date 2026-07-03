@@ -933,7 +933,146 @@
       quote: "更远的目标，也是一秒一秒走过去的。"
     }
   ];
+const onlineDataVersion = "2026-07-03-v1";
 
+const initialOnlineData = {
+  meta: {
+    version: onlineDataVersion
+  },
+  hero: {
+    title: "熬一天，少一天",
+    subtitle: "快熬一熬"
+  },
+  targets: [
+    {
+      name: "多伦多",
+      date: "2026-07-18T11:30:00.000Z",
+      start: "2026-06-27T22:48:18.975Z",
+      quote: "这是你自己加的新目标。"
+    },
+    {
+      name: "回国",
+      date: "2026-12-04T15:00:00.000Z",
+      start: "2026-07-01T19:29:48.851Z",
+      quote: "这是你自己加的新目标。"
+    }
+  ],
+  difficulties: {
+    "2026-05-01": "B",
+    "2026-05-02": "C",
+    "2026-05-03": "C",
+    "2026-05-04": "A",
+    "2026-05-05": "S",
+    "2026-05-06": "S",
+    "2026-05-07": "A",
+    "2026-05-08": "B",
+    "2026-05-09": "A",
+    "2026-05-10": "A",
+    "2026-05-11": "S",
+    "2026-05-12": "SPLUS",
+    "2026-05-13": "A",
+    "2026-05-14": "A",
+    "2026-05-15": "B",
+    "2026-05-16": "C",
+    "2026-05-17": "C",
+    "2026-05-18": "C",
+    "2026-05-19": "B",
+    "2026-05-20": "B",
+    "2026-05-21": "B",
+    "2026-05-22": "B",
+    "2026-05-23": "C",
+    "2026-05-24": "C",
+    "2026-05-25": "A",
+    "2026-05-26": "S",
+    "2026-05-27": "S",
+    "2026-05-28": "S",
+    "2026-05-29": "S",
+    "2026-05-30": "C",
+    "2026-05-31": "C",
+    "2026-06-01": "B",
+    "2026-06-02": "B",
+    "2026-06-03": "B",
+    "2026-06-04": "B",
+    "2026-06-05": "B",
+    "2026-06-06": "C",
+    "2026-06-07": "C",
+    "2026-06-08": "B",
+    "2026-06-09": "B",
+    "2026-06-10": "B",
+    "2026-06-11": "B",
+    "2026-06-12": "B",
+    "2026-06-13": "C",
+    "2026-06-14": "C",
+    "2026-06-15": "B",
+    "2026-06-16": "B",
+    "2026-06-17": "B",
+    "2026-06-18": "B",
+    "2026-06-19": "A",
+    "2026-06-20": "C",
+    "2026-06-21": "B",
+    "2026-06-22": "B",
+    "2026-06-23": "B",
+    "2026-06-24": "B",
+    "2026-06-25": "B",
+    "2026-06-26": "D",
+    "2026-06-27": "D",
+    "2026-06-28": "D",
+    "2026-06-29": "D",
+    "2026-06-30": "D",
+    "2026-07-01": "D",
+    "2026-07-02": "D"
+  },
+  manualHolidays: {
+    "2025-09-02": true,
+    "2025-09-03": true,
+    "2025-09-29": true,
+    "2025-09-30": true,
+    "2025-10-13": true,
+    "2025-10-24": true,
+    "2025-11-11": true,
+    "2025-11-21": true,
+    "2025-12-04": true,
+    "2025-12-15": true,
+    "2025-12-22": true,
+    "2025-12-23": true,
+    "2025-12-24": true,
+    "2025-12-25": true,
+    "2025-12-26": true,
+    "2025-12-29": true,
+    "2025-12-30": true,
+    "2025-12-31": true,
+    "2026-01-01": true,
+    "2026-01-02": true,
+    "2026-01-19": true,
+    "2026-01-26": true,
+    "2026-01-27": true,
+    "2026-02-02": true,
+    "2026-02-12": true,
+    "2026-02-16": true,
+    "2026-02-24": true,
+    "2026-03-09": true,
+    "2026-03-10": true,
+    "2026-03-11": true,
+    "2026-03-13": true,
+    "2026-03-16": true,
+    "2026-03-17": true,
+    "2026-03-18": true,
+    "2026-03-19": true,
+    "2026-03-20": true,
+    "2026-04-02": true,
+    "2026-04-03": true,
+    "2026-04-06": true,
+    "2026-04-29": true,
+    "2026-05-02": true,
+    "2026-05-16": true,
+    "2026-05-18": true,
+    "2026-05-22": false,
+    "2026-05-30": true,
+    "2026-06-26": true,
+    "2026-06-29": true,
+    "2026-06-30": true
+  }
+};
   const difficultyLevels = [
     { key: "E", label: "E" },
     { key: "D", label: "D" },
@@ -944,9 +1083,10 @@
     { key: "SPLUS", label: "S+" }
   ];
 
-  let targets = loadTargets();
-  let difficulties = loadDifficulties();
-  let manualHolidays = loadManualHolidays();
+let targets = defaultTargets;
+let difficulties = {};
+let manualHolidays = {};
+let onlineLoaded = false;
 
   let activeIndex = 0;
   let editingIndex = null;
@@ -974,10 +1114,11 @@ let progressDecimalPlaces = 2;
   const monthTitle = document.getElementById("monthTitle");
 
   function saveHeroText() {
-    localStorage.setItem("countdown_hero_v1", JSON.stringify({
+    /*localStorage.setItem("countdown_hero_v1", JSON.stringify({
       title: heroTitle.textContent,
       subtitle: heroSubtitle.textContent
-    }));
+    }));*/
+    saveOnlineData();
   }
 
   function loadHeroText() {
@@ -999,14 +1140,15 @@ let progressDecimalPlaces = 2;
   }
 
   function saveTargets() {
-    const data = targets.map(item => ({
+    /*const data = targets.map(item => ({
       name: item.name,
       date: item.date.toISOString(),
       start: item.start.toISOString(),
       quote: item.quote
     }));
 
-    localStorage.setItem("countdown_targets_v2", JSON.stringify(data));
+    localStorage.setItem("countdown_targets_v2", JSON.stringify(data));*/
+    saveOnlineData();
   }
 
   function loadTargets() {
@@ -1035,7 +1177,8 @@ let progressDecimalPlaces = 2;
   }
 
   function saveDifficulties() {
-    localStorage.setItem("countdown_difficulties_v1", JSON.stringify(difficulties));
+    //localStorage.setItem("countdown_difficulties_v1", JSON.stringify(difficulties));
+    saveOnlineData();
   }
 
   function loadDifficulties() {
@@ -1052,7 +1195,8 @@ let progressDecimalPlaces = 2;
   }
 
   function saveManualHolidays() {
-    localStorage.setItem("countdown_manual_holidays_v1", JSON.stringify(manualHolidays));
+    //localStorage.setItem("countdown_manual_holidays_v1", JSON.stringify(manualHolidays));
+    saveOnlineData();
   }
 
   function loadManualHolidays() {
@@ -1707,7 +1851,91 @@ progressText.textContent = formatProgressPercent(percent);
     closeDifficultyModal();
     renderAll();
   }
+function applyOnlineData(data) {
+  if (data.hero) {
+    heroTitle.textContent = data.hero.title || "倒计时";
+    heroSubtitle.textContent = data.hero.subtitle || "";
+  }
 
+  if (Array.isArray(data.targets)) {
+    targets = data.targets.map(item => ({
+      name: item.name,
+      date: new Date(item.date),
+      start: new Date(item.start),
+      quote: item.quote || "继续坚持。"
+    }));
+  }
+
+  difficulties = data.difficulties || {};
+  manualHolidays = data.manualHolidays || {};
+
+  if (targets.length > 0) {
+    activeIndex = 0;
+    visibleYear = targets[0].date.getFullYear();
+    visibleMonth = targets[0].date.getMonth();
+  }
+
+  renderAll();
+}
+
+async function loadOnlineData() {
+  try {
+    const res = await fetch("/api/data", {
+      cache: "no-store"
+    });
+
+    const data = await res.json();
+
+    if (!data || !data.meta || data.meta.version !== onlineDataVersion) {
+      applyOnlineData(initialOnlineData);
+      onlineLoaded = true;
+      await saveOnlineData();
+      return;
+    }
+
+    applyOnlineData(data);
+    onlineLoaded = true;
+  } catch (e) {
+    applyOnlineData(initialOnlineData);
+    onlineLoaded = true;
+    await saveOnlineData();
+  }
+}
+
+async function saveOnlineData() {
+  if (!onlineLoaded) return;
+
+  const data = {
+    meta: {
+      version: onlineDataVersion,
+      updatedAt: new Date().toISOString()
+    },
+    hero: {
+      title: heroTitle.textContent,
+      subtitle: heroSubtitle.textContent
+    },
+    targets: targets.map(item => ({
+      name: item.name,
+      date: item.date.toISOString(),
+      start: item.start.toISOString(),
+      quote: item.quote
+    })),
+    difficulties,
+    manualHolidays
+  };
+
+  const res = await fetch("/api/data", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!res.ok) {
+    alert("保存失败，服务器没连上。");
+  }
+}
   function createPetals() {
     const box = document.getElementById("floating");
 
@@ -1750,9 +1978,11 @@ progressText.addEventListener("click", () => {
   progressDecimalPlaces = progressDecimalPlaces === 2 ? 4 : 2;
   update();
 });
-  loadHeroText();
-  createPetals();
-  renderAll();
+createPetals();
+renderAll();
+loadOnlineData();
+
+setInterval(update, 1000);
 
   setInterval(update, 1000);
 </script>
