@@ -169,14 +169,6 @@ export async function onRequestGet(context) {
 }
 
 export async function onRequestPost(context) {
-  const password = context.request.headers.get("x-password");
-
-  if (password !== context.env.PASSWORD) {
-    return new Response("密码不对", {
-      status: 401
-    });
-  }
-
   let data;
 
   try {
